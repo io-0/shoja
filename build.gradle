@@ -1,0 +1,43 @@
+plugins {
+  id 'java-library'
+  id 'maven-publish'
+  id 'com.github.ben-manes.versions' version '0.36.0'
+  id 'se.patrikerdes.use-latest-versions' version '0.2.15'
+}
+
+group = 'net.io_0'
+version = "1.0.0-SNAPSHOT"
+sourceCompatibility = 11
+
+repositories {
+  mavenCentral()
+}
+
+dependencies {
+  testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
+  testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
+}
+
+test {
+  useJUnitPlatform()
+}
+
+publishing {
+  publications {
+    mavenJava(MavenPublication) {
+      from components.java
+    }
+  }
+}
+
+// disallow release candidates as upgradable versions from stable
+dependencyUpdates.configure {
+  def isNonStable = { String version ->
+    def stableKeyword = ['RELEASE', 'FINAL', 'GA'].any { String kw -> version.toUpperCase().contains(kw) }
+    return !stableKeyword && !(version ==~ /^[0-9,.v-]+(-r)?$/)
+  }
+
+  rejectVersionIf {
+    isNonStable(it.candidate.version) && !isNonStable(it.currentVersion)
+  }
+}
