@@ -1,11 +1,15 @@
 package net.io_0.shoja;
 
+import net.io_0.shoja.model.Item;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.regex.Pattern;
+import java.util.concurrent.ConcurrentSkipListSet;
+import java.util.stream.Stream;
 
+import static java.lang.System.out;
+import static java.time.OffsetDateTime.now;
 import static java.util.Optional.empty;
 import static java.util.regex.Pattern.compile;
 import static net.io_0.shoja.JavaShortcuts.*;
@@ -19,11 +23,11 @@ import static org.junit.jupiter.api.Assertions.*;
  *   so that I can reuse them anywhere
  */
 class JavaShortcutsTest {
-
   /**
    * Scenario: I can't be bothered to write Optional.ofNullable every time.
    */
   @Test
+  @SuppressWarnings("all")
   void testOpt() {
     assertEquals(Optional.ofNullable(null), opt(null));
     assertEquals(Optional.ofNullable("not null"), opt("not null"));
@@ -35,9 +39,9 @@ class JavaShortcutsTest {
   @Test
   void testOptCast() {
     assertEquals(empty(), optCast(null, null));
-    assertEquals(empty(), optCast(String.class, null));
-    assertEquals(empty(), optCast(String.class, 1));
-    assertEquals(opt("one"), optCast(String.class, "one"));
+    assertEquals(empty(), optCast(null, String.class));
+    assertEquals(empty(), optCast(1, String.class));
+    assertEquals(opt("one"), optCast("one", String.class));
   }
 
   /**
@@ -46,9 +50,9 @@ class JavaShortcutsTest {
   @Test
   void testOptMatch() {
     assertEquals(empty(), optMatch(null, null));
-    assertEquals(empty(), optMatch(compile(".*"), null));
-    assertEquals(empty(), optMatch(compile(".*"), ""));
-    assertEquals(opt("t"), optMatch(compile(".*"), "t"));
+    assertEquals(empty(), optMatch(null, compile(".*")));
+    assertEquals(empty(), optMatch("", compile(".*")));
+    assertEquals(opt("t"), optMatch("t", compile(".*")));
   }
 
   /**
@@ -57,13 +61,28 @@ class JavaShortcutsTest {
   @Test
   void testOptMatchGroups() {
     assertEquals(empty(), optMatchGroups(null, null));
-    assertEquals(empty(), optMatchGroups(compile(".*"), null));
-    assertEquals(empty(), optMatchGroups(compile(".*"), ""));
-    assertEquals(empty(), optMatchGroups(compile(".*"), "t"));
-    assertEquals(empty(), optMatchGroups(compile("(.*)"), ""));
-    assertEquals(empty(), optMatchGroups(compile("(e)"), "t"));
-    assertEquals(opt(List.of("t")), optMatchGroups(compile("(.*)"), "t"));
-    assertEquals(opt(List.of("2021", "02", "27")), optMatchGroups(compile("([0-9]{4})-([0-9]{2})-([0-9]{2})"), "2021-02-27"));
-    assertEquals(opt(List.of("tes", "es")), optMatchGroups(compile("(t(es)).*"), "test"));
+    assertEquals(empty(), optMatchGroups(null, compile(".*")));
+    assertEquals(empty(), optMatchGroups("", compile(".*")));
+    assertEquals(empty(), optMatchGroups("t", compile(".*")));
+    assertEquals(empty(), optMatchGroups("", compile("(.*)")));
+    assertEquals(empty(), optMatchGroups("t", compile("(e)")));
+    assertEquals(opt(List.of("t")), optMatchGroups("t", compile("(.*)")));
+    assertEquals(opt(List.of("2021", "02", "27")), optMatchGroups("2021-02-27", compile("([0-9]{4})-([0-9]{2})-([0-9]{2})")));
+    assertEquals(opt(List.of("tes", "es")), optMatchGroups("test", compile("(t(es)).*")));
+  }
+
+  /**
+   * Scenario: I want fluent code and a band-aid if no fluent setters or builders are present
+   */
+  @Test
+  void testTap() {
+    assertNull(tap(null, null));
+    assertNull(tap(null, obj -> {}));
+    assertEquals("one", tap(new ConcurrentSkipListSet<String>(), set -> { set.add("one"); set.add("two"); }).first());
+    assertNotNull(tap(new Item("b"), b -> // tap spares me from variable assignment
+      Stream.of(new Item("a"), b, new Item("c"))
+        .map(tap(item -> item.setProcessedAt(now()))) // tap allows fluent object manipulation in this exemplary item stream workflow
+        .forEach(item -> out.printf("Item %s was processed at %s%n", item.getName(), item.getProcessedAt()))
+    ).getProcessedAt());
   }
 }
