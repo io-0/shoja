@@ -4,6 +4,7 @@ import net.io_0.shoja.model.Item;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.stream.Stream;
@@ -84,5 +85,39 @@ class JavaShortcutsTest {
         .map(tap(item -> item.setProcessedAt(now()))) // tap allows fluent object manipulation in this exemplary item stream workflow
         .forEach(item -> out.printf("Item %s was processed at %s%n", item.getName(), item.getProcessedAt()))
     ).getProcessedAt());
+  }
+  
+  /**
+   * Scenario: I want an compact way to do something if a value is not null, a List not empty or a Map not empty
+   */
+  @Test
+  void testIfPresent() {
+    StringBuilder sb = new StringBuilder();
+    ifPresent(null, null); // no NPE
+    ifPresent("t", null); // no NPE
+    ifPresent(null, o -> { throw new IllegalStateException(); }); // no Ex
+    ifPresent(List.of(), o -> { throw new IllegalStateException(); }); // no Ex
+    ifPresent(Map.of(), o -> { throw new IllegalStateException(); }); // no Ex
+    ifPresent("t", sb::append);
+    ifPresent(List.of("e"), sb::append);
+    ifPresent(Map.of("s", "t"), sb::append);
+    assertEquals("t[e]{s=t}", sb.toString());
+  }
+
+  /**
+   * Scenario: I want an compact way to do something if a value is null, a List empty or a Map empty
+   */
+  @Test
+  void testIfAbsent() {
+    StringBuilder sb = new StringBuilder();
+    ifAbsent(null, null); // no NPE
+    ifAbsent("t", null); // no NPE
+    ifAbsent(null, () -> sb.append("t"));
+    ifAbsent("t", () -> { throw new IllegalStateException(); }); // no Ex
+    ifAbsent(List.of(), () -> sb.append("e"));
+    ifAbsent(List.of("e"), () -> { throw new IllegalStateException(); }); // no Ex
+    ifAbsent(Map.of(), () -> sb.append("st"));
+    ifAbsent(Map.of("s", "t"), () -> { throw new IllegalStateException(); }); // no Ex
+    assertEquals("test", sb.toString());
   }
 }
