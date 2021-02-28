@@ -20,8 +20,5 @@ dependencies {
   ...
 }
 ```
-### Example 1
-Text
-```Java
-// todo
-```
+### Examples
+Please take a look at [Tests](./src/test/java/net/io_0/shoja/JavaShortcutsTest.java) for now.

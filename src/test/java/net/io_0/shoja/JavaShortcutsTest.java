@@ -38,38 +38,32 @@ class JavaShortcutsTest {
    * Scenario: I want to Cast an Object with an optional result
    */
   @Test
-  void testOptCast() {
-    assertEquals(empty(), optCast(null, null));
-    assertEquals(empty(), optCast(null, String.class));
-    assertEquals(empty(), optCast(1, String.class));
-    assertEquals(opt("one"), optCast("one", String.class));
+  void testCast() {
+    assertEquals(empty(), cast(null, null));
+    assertEquals(empty(), cast(null, String.class));
+    assertEquals(empty(), cast(1, String.class));
+    assertEquals(opt("one"), cast("one", String.class));
   }
 
   /**
    * Scenario: I want to Regex match a String with an optional result
    */
   @Test
-  void testOptMatch() {
-    assertEquals(empty(), optMatch(null, null));
-    assertEquals(empty(), optMatch(null, compile(".*")));
-    assertEquals(empty(), optMatch("", compile(".*")));
-    assertEquals(opt("t"), optMatch("t", compile(".*")));
-  }
+  void testMatch() {
+    assertEquals(empty(), match(null, null));
+    assertEquals(empty(), match(null, compile(".*")));
+    assertEquals(empty(), match("", compile("")));
+    assertEquals(empty(), match("", compile(".*")));
+    assertEquals(opt("t"), match("t", compile(".*")).map(RegexMatches::first));
 
-  /**
-   * Scenario: I want to Regex with groups match a String with an optional result
-   */
-  @Test
-  void testOptMatchGroups() {
-    assertEquals(empty(), optMatchGroups(null, null));
-    assertEquals(empty(), optMatchGroups(null, compile(".*")));
-    assertEquals(empty(), optMatchGroups("", compile(".*")));
-    assertEquals(empty(), optMatchGroups("t", compile(".*")));
-    assertEquals(empty(), optMatchGroups("", compile("(.*)")));
-    assertEquals(empty(), optMatchGroups("t", compile("(e)")));
-    assertEquals(opt(List.of("t")), optMatchGroups("t", compile("(.*)")));
-    assertEquals(opt(List.of("2021", "02", "27")), optMatchGroups("2021-02-27", compile("([0-9]{4})-([0-9]{2})-([0-9]{2})")));
-    assertEquals(opt(List.of("tes", "es")), optMatchGroups("test", compile("(t(es)).*")));
+    // with groups
+    assertEquals(empty(), match("", compile("(.*)")));
+    assertEquals(empty(), match("t", compile("(e)")));
+    assertEquals(empty(), match("2021-02-2", compile("([0-9]{4})-([0-9]{2})-([0-9]{2})")));
+    assertEquals(opt("t"), match("t", compile("(t)")).map(RegexMatches::first));
+    assertEquals(opt(List.of("t")), match("t", compile("(.*)")).map(RegexMatches::all));
+    assertEquals(opt(List.of("2021", "02", "27")), match("2021-02-27", compile("([0-9]{4})-([0-9]{2})-([0-9]{2})")).map(RegexMatches::all));
+    assertEquals(opt(List.of("tes", "es")), match("test", compile("(t(es)).*")).map(RegexMatches::all));
   }
 
   /**
@@ -88,7 +82,7 @@ class JavaShortcutsTest {
   }
   
   /**
-   * Scenario: I want an compact way to do something if a value is not null, a List not empty or a Map not empty
+   * Scenario: I want a compact way to do something if a value is not null, a List not empty or a Map not empty
    */
   @Test
   void testIfPresent() {
@@ -105,7 +99,7 @@ class JavaShortcutsTest {
   }
 
   /**
-   * Scenario: I want an compact way to do something if a value is null, a List empty or a Map empty
+   * Scenario: I want a compact way to do something if a value is null, a List empty or a Map empty
    */
   @Test
   void testIfAbsent() {

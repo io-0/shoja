@@ -4,7 +4,6 @@ import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
-import java.util.regex.MatchResult;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -25,24 +24,22 @@ public class JavaShortcuts {
   /**
    * Casting with {@link Optional} result
    */
-  public static <T> Optional<T> optCast(Object obj, Class<T> type) {
+  public static <T> Optional<T> cast(Object obj, Class<T> type) {
     return opt(type).flatMap(t -> opt(obj).filter(t::isInstance).map(t::cast));
   }
 
   /**
-   * Regex {@link Pattern} matching with {@link Optional} result
+   * Simplified Regex {@link Pattern} matching with {@link Optional} matches (supports unnamed regex groups)
    */
-  public static Optional<String> optMatch(String str, Pattern pattern) {
-    return match(str, pattern).map(result -> str);
-  }
-
-  /**
-   * Regex {@link Pattern} matching with {@link Optional} matched groups result
-   */
-  public static Optional<List<String>> optMatchGroups(String str, Pattern pattern) {
-    return match(str, pattern)
-      .map(result -> range(1, result.groupCount()+1).mapToObj(result::group).collect(toList()))
-      .filter(not(List::isEmpty));
+  public static Optional<RegexMatches> match(String str, Pattern pattern) {
+    return opt(pattern)
+      .flatMap(p -> opt(str).filter(not(String::isEmpty)).map(p::matcher).filter(Matcher::matches))
+      .map(result -> result.groupCount() > 0
+        ? range(1, result.groupCount()+1).mapToObj(result::group).collect(toList())
+        : List.of(str)
+      )
+      .filter(not(List::isEmpty))
+      .map(RegexMatches::new);
   }
 
   /**
@@ -61,31 +58,29 @@ public class JavaShortcuts {
   }
 
   /**
-   * Calls consumer if data or data within container (collection or map) is present
+   * Invoke callback if data or data within container (collection or map) is present
    */
-  public static <T> void ifPresent(T obj, Consumer<T> consumer) {
-    opt(consumer).ifPresent(c -> opt(obj)
-      .filter(not(isEmptyCollection.or(isEmptyMap)))
-      .ifPresent(c)
-    );
-  }
-
-  /**
-   * Calls runnable if data or data within container (collection or map) is absent
-   */
-  public static <T> void ifAbsent(T obj, Runnable runnable) {
-    opt(runnable).ifPresent(r -> {
-      if (isEmptyCollection.or(isEmptyMap).or(Objects::isNull).test(obj)) {
-        r.run();
+  public static <T> void ifPresent(T obj, Consumer<T> callback) {
+    opt(callback).ifPresent(cb -> {
+      if (isPresent.test(obj)) {
+        cb.accept(obj);
       }
     });
   }
 
-  private static Optional<MatchResult> match(String str, Pattern pattern) {
-    return opt(pattern).flatMap(p -> opt(str).filter(not(String::isEmpty)).map(p::matcher).filter(Matcher::matches));
+  /**
+   * Invoke callback if data or data within container (collection or map) is absent
+   */
+  public static <T> void ifAbsent(T obj, Runnable callback) {
+    opt(callback).ifPresent(cb -> {
+      if (isAbsent.test(obj)) {
+        cb.run();
+      }
+    });
   }
 
-  private static final Predicate<Object> isEmptyCollection = o -> o instanceof Collection && ((Collection<?>) o).isEmpty();
-
-  private static final Predicate<Object> isEmptyMap = o -> o instanceof Map && ((Map<?, ?>) o).isEmpty();
+  public static final Predicate<Object> isEmptyCollection = o -> o instanceof Collection && ((Collection<?>) o).isEmpty();
+  public static final Predicate<Object> isEmptyMap = o -> o instanceof Map && ((Map<?, ?>) o).isEmpty();
+  public static final Predicate<Object> isAbsent = isEmptyCollection.or(isEmptyMap).or(Objects::isNull);
+  public static final Predicate<Object> isPresent = not(isAbsent);
 }
