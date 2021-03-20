@@ -3,12 +3,14 @@ package net.io_0.shoja;
 import net.io_0.shoja.model.Item;
 import org.junit.jupiter.api.Test;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.stream.Stream;
 
+import static java.lang.String.format;
 import static java.lang.System.out;
 import static java.time.OffsetDateTime.now;
 import static java.util.Optional.empty;
@@ -79,6 +81,16 @@ class JavaShortcutsTest {
         .map(tap(item -> item.setProcessedAt(now()))) // tap allows fluent object manipulation in this exemplary item stream workflow
         .forEach(item -> out.printf("Item %s was processed at %s%n", item.getName(), item.getProcessedAt()))
     ).getProcessedAt());
+  }
+
+  /**
+   * Scenario: Sometimes I want to be spared from creating variables and stay in the flow
+   */
+  @Test
+  void testWith() {
+    assertNull(with(null, null));
+    assertNull(with("a", null));
+    assertTrue(with(LocalDateTime.now(), now -> format("%s is after %s", now, now.minusHours(1))).contains("after 2"));
   }
   
   /**

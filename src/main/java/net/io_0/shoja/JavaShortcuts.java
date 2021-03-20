@@ -2,6 +2,7 @@ package net.io_0.shoja;
 
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
 import java.util.regex.Matcher;
@@ -55,6 +56,13 @@ public class JavaShortcuts {
    */
   public static <T> UnaryOperator<T> tap(Consumer<T> manipulator) {
     return obj -> tap(obj, manipulator);
+  }
+
+  /**
+   * Execute function with variable (reversed apply).
+   */
+  public static <T, U> U with(T var, Function<T, U> fn) {
+    return opt(fn).map(f -> f.apply(var)).orElse(null);
   }
 
   /**
