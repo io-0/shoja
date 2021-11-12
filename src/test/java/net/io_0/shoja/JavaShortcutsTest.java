@@ -92,7 +92,18 @@ class JavaShortcutsTest {
     assertNull(with("a", null));
     assertTrue(with(LocalDateTime.now(), now -> format("%s is after %s", now, now.minusHours(1))).contains("after 2"));
   }
-  
+
+  /**
+   * Scenario: I want to be able to compose method references
+   */
+  @Test
+  void testFn() {
+    assertEquals(4, fn(this::subtractTwo).compose(this::addFive).apply(1));
+    assertEquals(6, fn(this::addFive).andThen(this::subtractTwo).apply(3));
+  }
+  private Integer addFive(Integer nr) { return nr+5; }
+  private Integer subtractTwo(Integer nr) { return nr-2; }
+
   /**
    * Scenario: I want a compact way to do something if a value is not null, a List not empty or a Map not empty
    */
