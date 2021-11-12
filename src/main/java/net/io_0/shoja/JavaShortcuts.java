@@ -66,6 +66,13 @@ public class JavaShortcuts {
   }
 
   /**
+   * Help the compiler understand that method references are indeed functions
+   */
+  public static <T, U> Function<T, U> fn(Function<T, U> fn) {
+    return fn;
+  }
+
+  /**
    * Invoke callback if data or data within container (collection or map) is present
    */
   public static <T> void ifPresent(T obj, Consumer<T> callback) {
