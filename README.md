@@ -16,7 +16,7 @@ repositories {
 ```Gradle
 dependencies {
   ...
-  implementation "com.github.io-0:shoja:1.0.0"
+  implementation "com.github.io-0:shoja:1.1.1"
   ...
 }
 ```
